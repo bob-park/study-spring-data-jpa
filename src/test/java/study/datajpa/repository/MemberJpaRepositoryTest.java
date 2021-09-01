@@ -66,4 +66,118 @@ class MemberJpaRepositoryTest {
     long deletedCount = memberJpaRepository.count();
     assertThat(deletedCount).isZero();
   }
+
+  @Test
+  void findByUsernameAndAgeGreaterThen() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 20);
+
+    memberJpaRepository.save(member1);
+    memberJpaRepository.save(member2);
+
+    // when
+    List<Member> result = memberJpaRepository.findByUsernameAndAgeGreaterThan("user2", 15);
+
+    // then
+
+    assertThat(result.get(0).getUsername()).isEqualTo("user2");
+    assertThat(result.get(0).getAge()).isEqualTo(20);
+    assertThat(result.size()).isEqualTo(1);
+  }
+
+  @Test
+  void findByUsername() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    memberJpaRepository.save(member1);
+
+    // when
+    List<Member> result = memberJpaRepository.findByUsername("user1");
+
+    // then
+    assertThat(result.get(0).getUsername()).isEqualTo("user1");
+    assertThat(result.get(0).getAge()).isEqualTo(10);
+    assertThat(result.size()).isEqualTo(1);
+  }
+
+  @Test
+  void testPagination() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 10);
+    Member member3 = new Member("user3", 10);
+    Member member4 = new Member("user4", 10);
+    Member member5 = new Member("user5", 10);
+
+    memberJpaRepository.save(member1);
+    memberJpaRepository.save(member2);
+    memberJpaRepository.save(member3);
+    memberJpaRepository.save(member4);
+    memberJpaRepository.save(member5);
+
+    // when
+
+    int age = 10;
+    int offset = 0;
+    int limit = 3;
+
+    long totalCount = memberJpaRepository.totalCount(age);
+    List<Member> members = memberJpaRepository.findByPage(age, offset, limit);
+
+    // then
+    assertThat(totalCount).isEqualTo(5);
+    assertThat(members.size()).isEqualTo(3);
+  }
+
+  @Test
+  void testSlicePage() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 10);
+    Member member3 = new Member("user3", 10);
+    Member member4 = new Member("user4", 10);
+    Member member5 = new Member("user5", 10);
+
+    memberJpaRepository.save(member1);
+    memberJpaRepository.save(member2);
+    memberJpaRepository.save(member3);
+    memberJpaRepository.save(member4);
+    memberJpaRepository.save(member5);
+
+    // when
+
+    int age = 10;
+    int offset = 0;
+    int limit = 3;
+
+    long totalCount = memberJpaRepository.totalCount(age);
+    List<Member> members = memberJpaRepository.findByPage(age, offset, limit);
+
+    // then
+    assertThat(totalCount).isEqualTo(5);
+    assertThat(members.size()).isEqualTo(3);
+  }
+
+  @Test
+  void testBulkUpdate() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 19);
+    Member member3 = new Member("user3", 20);
+    Member member4 = new Member("user4", 21);
+    Member member5 = new Member("user5", 40);
+
+    memberJpaRepository.save(member1);
+    memberJpaRepository.save(member2);
+    memberJpaRepository.save(member3);
+    memberJpaRepository.save(member4);
+    memberJpaRepository.save(member5);
+
+    // when
+    int result = memberJpaRepository.bulkAgePlus(20);
+
+    // then
+    assertThat(result).isEqualTo(3);
+  }
 }

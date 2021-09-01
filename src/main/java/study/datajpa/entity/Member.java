@@ -3,6 +3,12 @@ package study.datajpa.entity;
 import javax.persistence.*;
 
 @Entity
+@NamedQuery(
+    name = "Member.findByUsername",
+    query = "select m from Member m where m.username = :username")
+
+// JPA Entity Graph
+@NamedEntityGraph(name = "Member.all", attributeNodes = @NamedAttributeNode("team"))
 public class Member {
 
   @Id
@@ -30,6 +36,11 @@ public class Member {
     if (team != null) {
       changeTeam(team);
     }
+  }
+
+  public Member(String username, int age) {
+    this.username = username;
+    this.age = age;
   }
 
   public Long getId() {
@@ -71,6 +82,6 @@ public class Member {
 
   @Override
   public String toString() {
-    return "Member{" + "id=" + id + ", username='" + username + ", age=" + age + '}';
+    return "Member{" + "id=" + id + ", username='" + username + '\'' + ", age=" + age + '}';
   }
 }
