@@ -3,6 +3,10 @@ package study.datajpa.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -195,5 +199,120 @@ class MemberRepositoryTest {
     memberRepository.findOptionalByUsername("user3"); // Optional
 
     // then
+  }
+
+  @Test
+  void testPagination() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 10);
+    Member member3 = new Member("user3", 10);
+    Member member4 = new Member("user4", 10);
+    Member member5 = new Member("user5", 10);
+
+    memberRepository.save(member1);
+    memberRepository.save(member2);
+    memberRepository.save(member3);
+    memberRepository.save(member4);
+    memberRepository.save(member5);
+
+    // when
+
+    int age = 10;
+
+    // ! Spring data jpa 는 page 가 0부터 시작
+    PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+    Page<Member> result = memberRepository.findByAge(age, pageRequest);
+
+    long totalCount = result.getTotalElements();
+    List<Member> content = result.getContent();
+
+    // then
+    assertThat(totalCount).isEqualTo(5);
+    assertThat(content.size()).isEqualTo(3);
+    assertThat(result.getTotalPages()).isEqualTo(2);
+    assertThat(result.getNumber()).isZero();
+    assertThat(result.isFirst()).isTrue();
+    assertThat(result.hasNext()).isTrue();
+  }
+
+  @Test
+  void testSlicePagination() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 10);
+    Member member3 = new Member("user3", 10);
+    Member member4 = new Member("user4", 10);
+    Member member5 = new Member("user5", 10);
+
+    memberRepository.save(member1);
+    memberRepository.save(member2);
+    memberRepository.save(member3);
+    memberRepository.save(member4);
+    memberRepository.save(member5);
+
+    // when
+
+    int age = 10;
+
+    // ! Spring data jpa 는 page 가 0부터 시작
+    PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+    Slice<Member> result = memberRepository.findSliceByAge(age, pageRequest);
+
+    List<Member> content = result.getContent();
+
+    // then
+    assertThat(content.size()).isEqualTo(3);
+    assertThat(result.getNumber()).isZero();
+    assertThat(result.isFirst()).isTrue();
+    assertThat(result.hasNext()).isTrue();
+
+    Slice<Member> nextResult = memberRepository.findSliceByAge(age, result.nextPageable());
+
+    assertThat(nextResult.getContent().size()).isEqualTo(2);
+    assertThat(nextResult.getNumber()).isEqualTo(1);
+    assertThat(nextResult.isFirst()).isFalse();
+    assertThat(nextResult.hasNext()).isFalse();
+  }
+
+  @Test
+  void testPaginationExtractCount() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 10);
+    Member member3 = new Member("user3", 10);
+    Member member4 = new Member("user4", 10);
+    Member member5 = new Member("user5", 10);
+
+    memberRepository.save(member1);
+    memberRepository.save(member2);
+    memberRepository.save(member3);
+    memberRepository.save(member4);
+    memberRepository.save(member5);
+
+    // when
+
+    int age = 10;
+
+    // ! Spring data jpa 는 page 가 0부터 시작
+    PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+    Page<Member> result = memberRepository.findExtractCountByAge(age, pageRequest);
+
+    List<Member> content = result.getContent();
+
+    // then
+    assertThat(result.getTotalElements()).isEqualTo(5);
+    assertThat(content.size()).isEqualTo(3);
+    assertThat(result.getNumber()).isZero();
+    assertThat(result.isFirst()).isTrue();
+    assertThat(result.hasNext()).isTrue();
+
+    // * Page to DTO
+    // page 를 유지하면서 DTO 로 변환 된다.
+    Page<MemberDto> toMap =
+        result.map(member -> new MemberDto(member.getId(), member.getUsername(), null));
   }
 }

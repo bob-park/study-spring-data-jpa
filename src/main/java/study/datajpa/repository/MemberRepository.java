@@ -1,5 +1,8 @@
 package study.datajpa.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -121,4 +124,48 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
   Member findOneByUsername(String username);
 
   Optional<Member> findOptionalByUsername(String username);
+
+  /**
+   * Pagination
+   *
+   * <pre>
+   *     - count query 를 실행하여 페이징 처리를 한다.
+   * </pre>
+   */
+  Page<Member> findByAge(int age, Pageable pageable);
+
+  /**
+   * Slice
+   *
+   * <pre>
+   *     - count query 를 실행하지 않는다.
+   *     - limit 보다 + 1 만큼 더 가져와 다음 페이지 여부만 판단한다.
+   *     - 다음 페이지를 가져올 때 nextPageable() 하여 가져오면 된다.
+   * </pre>
+   *
+   * @param age
+   * @param pageable
+   * @return
+   */
+  Slice<Member> findSliceByAge(int age, Pageable pageable);
+
+  /**
+   * Count query 분리
+   *
+   * <p>! 실무에서 많이 쓰임
+   *
+   * <pre>
+   *     - 복잡한 Query 라면 count query 를 같이 실행 할 경우 성능이 현저히 떨어질 수 있음
+   *     - Spring Data JPA 에서 count query 를 분리할 수 있음
+   *     - 단, @Query 를 사용해야함
+   * </pre>
+   *
+   * @param age
+   * @param pageable
+   * @return
+   */
+  @Query(
+      value = "select m from Member m left join m.team t where m.age >= :age",
+      countQuery = "select count(m) from Member m")
+  Page<Member> findExtractCountByAge(@Param("age") int age, Pageable pageable);
 }
