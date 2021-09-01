@@ -51,4 +51,23 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
    */
   @Query(name = "Member.findByUsername")
   List<Member> findByUsername(@Param("username") String username);
+
+  /**
+   * 메소드에 Query 작성
+   *
+   * <p>! 실무에서 많이 쓰인다.
+   *
+   * <p>* 장점
+   *
+   * <pre>
+   *     - 메소드 이름으로 인한 쿼리 생성 기능은 메소드 이름이 너무 길어지지만, 이것은 그것을 방지할 수 있다.
+   *     - Application Loading 시점에, Query 를 파싱하여, 실행 시 문법 오류를 확인할 수 있다.
+   * </pre>
+   *
+   * @param username
+   * @param age
+   * @return
+   */
+  @Query("select m from Member m where m.username = :username and m.age = :age")
+  List<Member> findUser(@Param("username") String username, @Param("age") int age);
 }
