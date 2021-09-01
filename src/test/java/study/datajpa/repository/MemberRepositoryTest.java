@@ -376,4 +376,50 @@ class MemberRepositoryTest {
 
     // then
   }
+
+  @Test
+  void testQueryHint() throws Exception {
+    // given
+    Team teamA = new Team("teamA");
+    teamRepository.save(teamA);
+
+    Member member1 = new Member("member1", 10, teamA);
+    memberRepository.save(member1);
+
+    em.flush();
+    em.clear();
+
+    // when
+    //    Member findMember = memberRepository.findById(member1.getId()).get();
+    Member findMember = memberRepository.findReadOnlyByUsername(member1.getUsername());
+
+    findMember.setUsername("member2");
+
+    // 내부 메커니즘에 의해 변경되지만, 확인하려면 객체를 2개 가지고 있어야한다. 즉, 성능적 비용이 발생한다.
+    // 이러한 부분을 위해 Hibernate 에서 Hint 제공
+    em.flush(); // Dirty Checking
+
+    // then
+  }
+
+  @Test
+  void testLock() throws Exception {
+    // given
+    Team teamA = new Team("teamA");
+    teamRepository.save(teamA);
+
+    Member member1 = new Member("member1", 10, teamA);
+    memberRepository.save(member1);
+
+    em.flush();
+    em.clear();
+    // when
+    List<Member> result = memberRepository.findLockByUsername("member1");
+
+    for (Member member : result) {
+      member.setUsername("member2");
+    }
+
+    // then
+  }
 }

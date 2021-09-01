@@ -3,14 +3,13 @@ package study.datajpa.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
+import javax.persistence.LockModeType;
+import javax.persistence.QueryHint;
 import java.util.List;
 import java.util.Optional;
 
@@ -210,14 +209,13 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
   List<Member> findMemberFetchJoin();
 
   /**
-   *
    * Entity Graph
    *
    * <pre>
    *     - Spring Data JPA 에서 Fetch Join 을 항상 JPQL 로 작성하기엔 너무 귀찮으므로 제공하준다.
    *     - @EntityGraph 를 선언한다.
    *        - attributePaths 에 fetch join 할 entity 를 적어주면 된다.
-*        - override, @Query, 메소드 이름으로 인한 쿼리 생성, JPA 에서 지원하는 Entity Graph 등 모두 사용 가능하다.
+   *        - override, @Query, 메소드 이름으로 인한 쿼리 생성, JPA 에서 지원하는 Entity Graph 등 모두 사용 가능하다.
    *     - 기본이 left join 이 된다.
    * </pre>
    *
@@ -236,4 +234,37 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
   @EntityGraph("Member.all")
   List<Member> findJPAEntityGraphByUsername(@Param("username") String username);
+
+  /**
+   * * JPA Hint - (SQL Hint 아님 주의)
+   *
+   * <pre>
+   *     - JPA 내부 매커니즘으로 최적화 되어 있지만, 결론적으로 Dirty Checking 을 위해 entity 와 snapshot 를 사용하여 확인하기 때문에, 여기서 성능적 비용이 발생한다.
+   *     - Hibernate 에 Hint 를 제공하여 그것을 방지 할 수 있다.
+   *     - readOnly 를 하면 JPA 내부적으로 최적화 해버림
+   * </pre>
+   *
+   * ! 주의할 점
+   *
+   * <pre>
+   *     - hint 를 readOnly 를 true 로 하면 snapshot 을 생성하지 않으므로, dirty checking 을 하지 않음
+   *     - 보통 hint 없이 성능이 잘 나오기 때문에, 처음부터 사용하지 말자 - 성능을 보고 나중에 결정해도 됨
+   * </pre>
+   */
+  @QueryHints(value = @QueryHint(name = "org.hibernate.readOnly", value = "true"))
+  Member findReadOnlyByUsername(String username);
+
+  /**
+   * select update lock
+   *
+   * <pre>
+   *     - JPA 에서 LOCK 지원
+   *     - Spring Data JPA 에서 사용하기 편하게 만든것
+   *     - dialect 를 기반으로 하지만, DB 매뉴얼을 보고 사용 권장
+   *     - 단, 대규모 트래픽에서 가급적 사용하지 말자
+   *        - 이때는, version 을 관리하는 lock 으로 해결하자
+   * </pre>
+   */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  List<Member> findLockByUsername(String username);
 }
