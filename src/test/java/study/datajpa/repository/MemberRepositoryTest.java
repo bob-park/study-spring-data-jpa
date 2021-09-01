@@ -11,6 +11,7 @@ import study.datajpa.entity.Team;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -177,5 +178,22 @@ class MemberRepositoryTest {
 
     // then
     assertThat(result.size()).isEqualTo(2);
+  }
+
+  @Test
+  void testReturnType() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 20);
+
+    memberRepository.save(member1);
+    memberRepository.save(member2);
+
+    // when
+    memberRepository.findListByUsername("user1"); // Collection
+    memberRepository.findOneByUsername("user1"); // 단일
+    memberRepository.findOptionalByUsername("user3"); // Optional
+
+    // then
   }
 }

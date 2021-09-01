@@ -7,6 +7,7 @@ import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
@@ -101,4 +102,23 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
    */
   @Query("select m from Member m where m.username in :names")
   List<Member> findByNames(@Param("names") List<String> names);
+
+  /**
+   * 반환 타입
+   *
+   * <pre>
+   *     - List, 단건, Optional 등 유연하게 사용 가능
+   *     - Collection 인 경우 값이 없을 경우 Empty Collection 이 반환됨 - 절대 null 이 아님
+   *     - 단건 인 경우 값이 없으면 null, 두개 이상인 경우 IncorrectResultSizeDataAccessException(Spring Data) -> NonUniqueResultException 터짐 - 값이 없는 경우 순수 JPA 인 경우 NoResultException 이 터짐
+   *     - Optional 인 경우, 두개 이상인 경우 IncorrectResultSizeDataAccessException(Spring Data) -> NonUniqueResultException 터짐 - 값이 없는 경우 Optional.Empty 임
+   * </pre>
+   *
+   * @param username
+   * @return
+   */
+  List<Member> findListByUsername(String username);
+
+  Member findOneByUsername(String username);
+
+  Optional<Member> findOptionalByUsername(String username);
 }
