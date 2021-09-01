@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
+import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
+import study.datajpa.entity.Team;
 
 import java.util.List;
 
@@ -17,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MemberRepositoryTest {
 
   @Autowired private MemberRepository memberRepository;
+  @Autowired private TeamRepository teamRepository;
 
   @Test
   void testmember() throws Exception {
@@ -120,5 +123,42 @@ class MemberRepositoryTest {
     assertThat(result.get(0).getUsername()).isEqualTo("user1");
     assertThat(result.get(0).getAge()).isEqualTo(10);
     assertThat(result.size()).isEqualTo(1);
+  }
+
+  @Test
+  void findUserNameList() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 20);
+
+    memberRepository.save(member1);
+    memberRepository.save(member2);
+
+    // when
+    List<String> result = memberRepository.findUsernameList();
+
+    // then
+    assertThat(result.get(0)).isEqualTo("user1");
+  }
+
+  @Test
+  void findUserDto() throws Exception {
+    // given
+    Team teamA = new Team("teamA");
+
+    teamRepository.save(teamA);
+
+    Member member1 = new Member("user1", 10);
+
+    member1.changeTeam(teamA);
+
+    memberRepository.save(member1);
+
+    // when
+    List<MemberDto> result = memberRepository.findUserDto();
+
+    // then
+    assertThat(result.get(0).getUsername()).isEqualTo("user1");
+    assertThat(result.get(0).getTeamName()).isEqualTo("teamA");
   }
 }
