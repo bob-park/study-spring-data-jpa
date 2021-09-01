@@ -6,6 +6,9 @@ import javax.persistence.*;
 @NamedQuery(
     name = "Member.findByUsername",
     query = "select m from Member m where m.username = :username")
+
+// JPA Entity Graph
+@NamedEntityGraph(name = "Member.all", attributeNodes = @NamedAttributeNode("team"))
 public class Member {
 
   @Id
@@ -79,6 +82,6 @@ public class Member {
 
   @Override
   public String toString() {
-    return "Member{" + "id=" + id + ", username='" + username + ", age=" + age + '}';
+    return "Member{" + "id=" + id + ", username='" + username + '\'' + ", age=" + age + '}';
   }
 }
