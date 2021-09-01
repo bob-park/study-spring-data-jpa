@@ -131,7 +131,7 @@ class MemberJpaRepositoryTest {
   }
 
   @Test
-  void testSlicePage() throws Exception{
+  void testSlicePage() throws Exception {
     // given
     Member member1 = new Member("user1", 10);
     Member member2 = new Member("user2", 10);
@@ -157,5 +157,27 @@ class MemberJpaRepositoryTest {
     // then
     assertThat(totalCount).isEqualTo(5);
     assertThat(members.size()).isEqualTo(3);
+  }
+
+  @Test
+  void testBulkUpdate() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 19);
+    Member member3 = new Member("user3", 20);
+    Member member4 = new Member("user4", 21);
+    Member member5 = new Member("user5", 40);
+
+    memberJpaRepository.save(member1);
+    memberJpaRepository.save(member2);
+    memberJpaRepository.save(member3);
+    memberJpaRepository.save(member4);
+    memberJpaRepository.save(member5);
+
+    // when
+    int result = memberJpaRepository.bulkAgePlus(20);
+
+    // then
+    assertThat(result).isEqualTo(3);
   }
 }

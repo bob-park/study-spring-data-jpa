@@ -315,4 +315,26 @@ class MemberRepositoryTest {
     Page<MemberDto> toMap =
         result.map(member -> new MemberDto(member.getId(), member.getUsername(), null));
   }
+
+  @Test
+  void testBulkUpdate() throws Exception {
+    // given
+    Member member1 = new Member("user1", 10);
+    Member member2 = new Member("user2", 19);
+    Member member3 = new Member("user3", 20);
+    Member member4 = new Member("user4", 21);
+    Member member5 = new Member("user5", 40);
+
+    memberRepository.save(member1);
+    memberRepository.save(member2);
+    memberRepository.save(member3);
+    memberRepository.save(member4);
+    memberRepository.save(member5);
+
+    // when
+    int result = memberRepository.bulkAgePlus(20);
+
+    // then
+    assertThat(result).isEqualTo(3);
+  }
 }

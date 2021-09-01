@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
@@ -168,4 +169,30 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
       value = "select m from Member m left join m.team t where m.age >= :age",
       countQuery = "select count(m) from Member m")
   Page<Member> findExtractCountByAge(@Param("age") int age, Pageable pageable);
+
+  /**
+   * Bulk Modify Query
+   *
+   * <pre>
+   *     - 한번에 update 하는 bulk 성 query 일때 사용한다.
+   *     - 무조건, @Modifying 을 선언해주어야 한다. (안해주면 update 쿼리를 실행하지 않고 다른걸 실행해버림)
+   * </pre>
+   *
+   * ! 주의해야할 점
+   *
+   * <pre>
+   *     - bulk Modify Query 는 Persistence Context 무시하고 실행해버림
+   *     - Persistence Context 에는 bulk 연산은 무시하기 때문에, bulk 연산 이전 데이터가 영속되어져 있음
+   *     - bulk 연산을 사용 후 Persistence Context 를 사용하려면 다음과 같이 방법이 있다.
+   *        1. bulk 연산 사용 후 Persistence Context 를 비우고, 다시 조회하여 사용 - flush(), clear() 후 사용
+   *        2. 맨 처음 bulk 연산 후 Persistence Context 를 조회하여 사용
+   *        3. @Modifying 의 clearAutomatically 옵션을 사용하면 자동으로 flush(), clear() 를 해준다.
+   * </pre>
+   *
+   * @param age
+   * @return
+   */
+  @Modifying(clearAutomatically = true)
+  @Query("update Member m set m.age = m.age + 1 where m.age >= :age")
+  int bulkAgePlus(@Param("age") int age);
 }
