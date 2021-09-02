@@ -6,6 +6,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
+import study.datajpa.dto.UsernameOnlyDto;
 import study.datajpa.entity.Member;
 import study.datajpa.repository.custom.MemberRepositoryCustom;
 
@@ -278,4 +279,47 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
    */
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   List<Member> findLockByUsername(String username);
+
+  List<UsernameOnly> findProjectionsByUsername(@Param("username") String username);
+
+  List<UsernameOnlyDto> findProjections2ByUsername(@Param("username") String username);
+
+  /**
+   * 동적 Projection
+   *
+   * @param username
+   * @param type
+   * @param <T>
+   * @return
+   */
+  <T> List<T> findProjections3ByUsername(@Param("username") String username, Class<T> type);
+
+  /**
+   * native query
+   *
+   * <pre>
+   *     - 실제 DB query  가 실행된다.
+   *     - member 테이블의 모든 column 을 모두 반환해야 된다.
+   *     - 반환타입 지원 범위가 좁다.
+   *     - 문법 확인 불가 - 직접 메소드를 실행해야 알 수 있다.
+   *     - 실무에서는 그냥 JdbcTemplate, Mybatis 를 사용하는게 좋다.
+   * </pre>
+   *
+   * * 하지만, Projections 랑 같이 쓸수 있다.
+   *
+   * <pre>
+   *     - pagination 까지 가능
+   *     - 단, 컬럼 이름을 매칭시켜주어야 한다.
+   * </pre>
+   */
+  @Query(value = "select * from member where username = ?", nativeQuery = true)
+  Member findByNativeQuery(String username);
+
+  @Query(
+      value =
+          "select m.member_id as id, m.username, t.name as teamName "
+              + "from member m left join team t",
+      countQuery = "select count(*) from member",
+      nativeQuery = true)
+  Page<MemberProjection> findProjectionsByNativeQuery(Pageable pageable);
 }

@@ -3,13 +3,11 @@ package study.datajpa.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
+import study.datajpa.dto.UsernameOnlyDto;
 import study.datajpa.entity.Member;
 import study.datajpa.entity.Team;
 
@@ -429,6 +427,155 @@ class MemberRepositoryTest {
 
     // when
     List<Member> memberCustom = memberRepository.findMemberCustom();
+
+    // then
+  }
+
+  /**
+   * Query by Example
+   *
+   * <p>* entity 로 바로 검색 조건을 만드는 것
+   *
+   * <pre>
+   *     - 실제 entity 객체를 검색조건으로 만들어 사용하는 것
+   *     - JpaRepository 에 기본으로 구현되어 있음
+   *     - 하지만, 실무에서는 거의 사용하지 못한다.
+   *        - Inner Join 만 가능하다.
+   *        - Outer Join 이 안된다.
+   *        - 복잡한 join 이 안된다.
+   *        - 중첩 적인 제약조건이 안된다.
+   *        - 매칭 조건이 매우 단순해서 못쓴다. (문자를 제외하면, equals 만 지원
+   * </pre>
+   *
+   * @throws Exception
+   */
+  @Test
+  void queryByExample() throws Exception {
+    // given
+    Team teamA = new Team("teamA");
+
+    em.persist(teamA);
+
+    Member member1 = new Member("member1", 10, teamA);
+    Member member2 = new Member("member2", 10, teamA);
+
+    member1.changeTeam(teamA);
+    member2.changeTeam(teamA);
+
+    em.persist(member1);
+    em.persist(member2);
+
+    em.flush();
+    em.clear();
+
+    // when
+    // Probe
+    Member member = new Member("member1"); // 조건이 entity 가 된다. - 미친거 아니냐?
+    Team team = new Team("teamA");
+
+    member.setTeam(team); // 연관관계도 해준다.
+
+    ExampleMatcher m = ExampleMatcher.matching().withIgnorePaths("age");
+
+    Example<Member> example = Example.of(member, m);
+
+    List<Member> result = memberRepository.findAll(example);
+
+    // then
+    assertThat(result.get(0).getUsername()).isEqualTo("member1");
+  }
+
+  /**
+   * Projections
+   *
+   * <pre>
+   *     - Interface 를 가지고 구현 Class 는 Spring Data JPA 가 Proxy 객체를 생성한다.
+   *     - DTO 를 사용하지 않고, 간단한 데이터를 가져올 때 사용하면 유용하다.
+   * </pre>
+   *
+   * @throws Exception
+   */
+  @Test
+  void testProjections() throws Exception {
+    // given
+    Team teamA = new Team("teamA");
+
+    em.persist(teamA);
+
+    Member member1 = new Member("member1", 10, teamA);
+    Member member2 = new Member("member2", 10, teamA);
+
+    member1.changeTeam(teamA);
+    member2.changeTeam(teamA);
+
+    em.persist(member1);
+    em.persist(member2);
+
+    em.flush();
+    em.clear();
+
+    // when
+
+    List<UsernameOnly> result = memberRepository.findProjectionsByUsername("member1");
+
+    for (UsernameOnly usernameOnly : result) {
+      System.out.println("usernameOnly = " + usernameOnly.getUsername());
+    }
+
+    List<UsernameOnlyDto> result2 = memberRepository.findProjections2ByUsername("member1");
+
+    for (UsernameOnlyDto usernameOnly : result2) {
+      System.out.println("usernameOnlyDto = " + usernameOnly.getUsername());
+    }
+
+    List<UsernameOnlyDto> result3 =
+        memberRepository.findProjections3ByUsername("member1", UsernameOnlyDto.class);
+
+    for (UsernameOnlyDto usernameOnly : result3) {
+      System.out.println("usernameOnlyDto = " + usernameOnly.getUsername());
+    }
+
+    List<NestedClosedProjections> result4 =
+        memberRepository.findProjections3ByUsername("member1", NestedClosedProjections.class);
+
+    for (NestedClosedProjections nestedClosedProjections : result4) {
+      System.out.println("nestedClosedProjections = " + nestedClosedProjections);
+    }
+
+    // then
+  }
+
+  @Test
+  void testNativeQuery() throws Exception {
+    // given
+    Team teamA = new Team("teamA");
+
+    em.persist(teamA);
+
+    Member member1 = new Member("member1", 10, teamA);
+    Member member2 = new Member("member2", 10, teamA);
+
+    member1.changeTeam(teamA);
+    member2.changeTeam(teamA);
+
+    em.persist(member1);
+    em.persist(member2);
+
+    em.flush();
+    em.clear();
+
+    // when
+
+    Member result = memberRepository.findByNativeQuery("member1");
+
+    Page<MemberProjection> result1 =
+        memberRepository.findProjectionsByNativeQuery(PageRequest.of(0, 10));
+
+    for (MemberProjection memberProjection : result1.getContent()) {
+
+      System.out.println("memberProjection.username = " + memberProjection.getUsername());
+      System.out.println("memberProjection.teamName = " + memberProjection.getTeamName());
+    }
 
     // then
   }

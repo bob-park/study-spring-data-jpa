@@ -13,7 +13,11 @@ class ItemRepositoryTest {
   @Test
   void testItem() throws Exception {
     // given
-    itemRepository.save(new Item());
+    Item item = new Item();
+
+    item.setId("1");
+
+    itemRepository.save(item);
 
     // when
 
