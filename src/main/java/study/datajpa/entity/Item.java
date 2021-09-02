@@ -19,7 +19,9 @@ public class Item implements Persistable<String> {
 
   @PrePersist
   public void generateId() {
-    id = CustomId.generate();
+    if (id == null) {
+      id = CustomId.generate();
+    }
   }
 
   public String getId() {
