@@ -544,4 +544,39 @@ class MemberRepositoryTest {
 
     // then
   }
+
+  @Test
+  void testNativeQuery() throws Exception {
+    // given
+    Team teamA = new Team("teamA");
+
+    em.persist(teamA);
+
+    Member member1 = new Member("member1", 10, teamA);
+    Member member2 = new Member("member2", 10, teamA);
+
+    member1.changeTeam(teamA);
+    member2.changeTeam(teamA);
+
+    em.persist(member1);
+    em.persist(member2);
+
+    em.flush();
+    em.clear();
+
+    // when
+
+    Member result = memberRepository.findByNativeQuery("member1");
+
+    Page<MemberProjection> result1 =
+        memberRepository.findProjectionsByNativeQuery(PageRequest.of(0, 10));
+
+    for (MemberProjection memberProjection : result1.getContent()) {
+
+      System.out.println("memberProjection.username = " + memberProjection.getUsername());
+      System.out.println("memberProjection.teamName = " + memberProjection.getTeamName());
+    }
+
+    // then
+  }
 }
