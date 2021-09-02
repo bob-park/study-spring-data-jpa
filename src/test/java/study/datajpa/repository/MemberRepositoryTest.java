@@ -7,6 +7,7 @@ import org.springframework.data.domain.*;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
+import study.datajpa.dto.UsernameOnlyDto;
 import study.datajpa.entity.Member;
 import study.datajpa.entity.Team;
 
@@ -482,5 +483,65 @@ class MemberRepositoryTest {
 
     // then
     assertThat(result.get(0).getUsername()).isEqualTo("member1");
+  }
+
+  /**
+   * Projections
+   *
+   * <pre>
+   *     - Interface 를 가지고 구현 Class 는 Spring Data JPA 가 Proxy 객체를 생성한다.
+   *     - DTO 를 사용하지 않고, 간단한 데이터를 가져올 때 사용하면 유용하다.
+   * </pre>
+   *
+   * @throws Exception
+   */
+  @Test
+  void testProjections() throws Exception {
+    // given
+    Team teamA = new Team("teamA");
+
+    em.persist(teamA);
+
+    Member member1 = new Member("member1", 10, teamA);
+    Member member2 = new Member("member2", 10, teamA);
+
+    member1.changeTeam(teamA);
+    member2.changeTeam(teamA);
+
+    em.persist(member1);
+    em.persist(member2);
+
+    em.flush();
+    em.clear();
+
+    // when
+
+    List<UsernameOnly> result = memberRepository.findProjectionsByUsername("member1");
+
+    for (UsernameOnly usernameOnly : result) {
+      System.out.println("usernameOnly = " + usernameOnly.getUsername());
+    }
+
+    List<UsernameOnlyDto> result2 = memberRepository.findProjections2ByUsername("member1");
+
+    for (UsernameOnlyDto usernameOnly : result2) {
+      System.out.println("usernameOnlyDto = " + usernameOnly.getUsername());
+    }
+
+    List<UsernameOnlyDto> result3 =
+        memberRepository.findProjections3ByUsername("member1", UsernameOnlyDto.class);
+
+    for (UsernameOnlyDto usernameOnly : result3) {
+      System.out.println("usernameOnlyDto = " + usernameOnly.getUsername());
+    }
+
+    List<NestedClosedProjections> result4 =
+        memberRepository.findProjections3ByUsername("member1", NestedClosedProjections.class);
+
+    for (NestedClosedProjections nestedClosedProjections : result4) {
+      System.out.println("nestedClosedProjections = " + nestedClosedProjections);
+    }
+
+    // then
   }
 }
