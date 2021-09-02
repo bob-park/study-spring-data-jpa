@@ -22,7 +22,7 @@ public class MemberController {
     this.memberRepository = memberRepository;
   }
 
-  @PostConstruct
+//  @PostConstruct
   public void init() {
 
     for (int i = 0; i < 100; i++) {
