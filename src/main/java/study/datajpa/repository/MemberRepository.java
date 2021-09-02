@@ -7,13 +7,24 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
+import study.datajpa.repository.custom.MemberRepositoryCustom;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 import java.util.List;
 import java.util.Optional;
 
-public interface MemberRepository extends JpaRepository<Member, Long> {
+/**
+ * Custom Repository
+ *
+ * <p>* 이것이 가능한 이유
+ *
+ * <pre>
+ *     - 실제 JAVA 에서는 이렇게 동작하지 않음
+ *     - Spring Data JPA 에서 해당 MemberRepositoryCustom 을 구현한 class 를 직접 생성하여, 사용할 수 있도록 만들어 주는 것
+ * </pre>
+ */
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom {
 
   /**
    * 메소드 이름으로 JPQL 를 생성할 수 있다.
