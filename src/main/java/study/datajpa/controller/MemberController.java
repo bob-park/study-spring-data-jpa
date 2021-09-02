@@ -1,8 +1,13 @@
 package study.datajpa.controller;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 import study.datajpa.repository.MemberRepository;
 
@@ -19,7 +24,10 @@ public class MemberController {
 
   @PostConstruct
   public void init() {
-    memberRepository.save(new Member("member1"));
+
+    for (int i = 0; i < 100; i++) {
+      memberRepository.save(new Member("member" + i, i));
+    }
   }
 
   @GetMapping(path = "/members/{id}")
@@ -47,8 +55,32 @@ public class MemberController {
    * @param member
    * @return
    */
-  @GetMapping(path = "/members2/{id}")
+  @GetMapping(path = "members2/{id}")
   public String findMember(@PathVariable("id") Member member) {
     return member.getUsername();
+  }
+
+  /**
+   * pagination and sorting
+   *
+   * <pre>
+   *     - Spring Data 에서 Pageable 를 기본으로 사용할 수 있다.
+   *     - Pageable 이 여러개 일 경우 prefix 를 정할 수 있다.
+   *        - @Qualifier 사용하면 된다.
+   * </pre>
+   *
+   * @param pageable
+   * @return
+   */
+  @GetMapping(path = "members")
+  public Page<MemberDto> list(
+      @Qualifier("member") @PageableDefault(size = 5, sort = "username") Pageable pageable) {
+
+    Page<Member> result = memberRepository.findAll(pageable);
+
+    //    return result;
+
+    // ! DTO 변환
+    return result.map(MemberDto::new);
   }
 }
