@@ -9,7 +9,16 @@ import javax.persistence.*;
 
 // JPA Entity Graph
 @NamedEntityGraph(name = "Member.all", attributeNodes = @NamedAttributeNode("team"))
-public class Member {
+/**
+ * Auditing - 순수 JPA
+ *
+ * <pre>
+ *     - JPA persist 특정 이벤트 발생시 실행하고 싶을 떄, 사용
+ *     - 공통 기능을 더이상 개발자가 신경안써도 되니 아주 좋다.
+ * </pre>
+ */
+//public class Member extends JpaBaseEntity{
+public class Member extends BaseEntity{
 
   @Id
   @GeneratedValue
