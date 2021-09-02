@@ -424,12 +424,12 @@ class MemberRepositoryTest {
   }
 
   @Test
-  void testCallCustom() throws Exception{
-      // given
+  void testCallCustom() throws Exception {
+    // given
 
-      // when
+    // when
     List<Member> memberCustom = memberRepository.findMemberCustom();
 
-    //then
+    // then
   }
 }
